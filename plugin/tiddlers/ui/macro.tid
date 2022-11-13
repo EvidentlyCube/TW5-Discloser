@@ -1,0 +1,120 @@
+title: $:/plugins/EvidentlyCube/Discloser/ui-macro
+type: text/vnd.tiddlywiki
+tags: $:/tags/Macro
+
+
+\define action-create-collection()
+	<$let
+		now=<<now "DDmmmYYYYhhmmssXXX">>
+		id={{{ [<now>] [all[tiddlers]] [variables[]] +[join[]sha256[32]] }}}
+		name={{$:/temp/discloser!!collection-name}}
+		basename={{{ [[$:/discloser/Collection-]addsuffix<id>] }}}
+	>
+		<$action-createtiddler
+			$basetitle=<<basename>>
+			tags="$:/discloser/Collection"
+			name=<<name>>
+			caption={{{ [<name>addsuffix[ (Discloser Collection)]] }}}
+			id=<<id>>
+		/>
+		<$action-setfield $tiddler="$:/temp/discloser" $field="collection-name"/>
+	</$let>
+\end
+
+\define action-link-tiddler()
+<$let
+	now=<<now "DDmmmYYYYhhmmssXXX">>
+	id={{{ [<now>] [all[tiddlers]] [variables[]] +[join[]sha256[32]] }}}
+	link-title={{{ [[$:/discloser/Link-]addsuffix<id>] }}}
+>
+	<$action-createtiddler
+		$basetitle=<<link-title>>
+		tags="$:/discloser/Link"
+		collection=<<currentTiddler>>
+		tiddler=<<item>>
+	/>
+	<$action-setfield $tiddler=<<search-temp>> $field="text" />
+	<$action-setfield $tiddler=<<focus-temp>> $field="text" />
+</$let>
+\end
+
+\define action-remove-link()
+	<$list filter="[all[tiddlers]tag[$:/discloser/Link]field:tiddler<item>field:collection<currentTiddler>]">
+		<$action-deletetiddler $tiddler=<<currentTiddler>>/>
+	</$list>
+\end
+
+\define comp-search()
+	<$let
+		search-temp={{{ [[$:/temp/publish/new-search-]addsuffix{!!id}] }}}
+		focus-temp={{{ [[$:/temp/publish/new-focus-]addsuffix{!!id}] }}}
+	>
+		<$edit-text
+			tiddler=<<search-temp>>
+			field="text"
+			tag="input"
+			default=""
+			placeholder="Search tiddler to add..."
+			class="subtle tc-popup-handle"
+			focusPopup=<<focus-temp>>
+		/>
+
+		<$reveal tag="div" class="tc-block-dropdown tc-edit-type-dropdown" state=<<focus-temp>> type="nomatch" text="" default="">
+			<div class="tc-dropdown-item">Tiddlers:</div>
+			<$set name="search" value={{{ [<search-temp>get[text]] }}}>
+				<$list filter="[!is[shadow]!is[system]!is[draft]search:title<search>sort[]limit[8]]" variable="item">
+					<$button tag="a" actions=<<action-link-tiddler>> class="tc-btn-invisible">
+						<$text text=<<item>>/>
+					</$button>
+				</$list>
+			</$set>
+		</$reveal>
+	</$let>
+\end
+
+\define discloser-ui()
+\whitespace trim
+
+<$list filter="[tag[$:/discloser/Collection]!is[draft]]" emptyMessage="""<span class="ec_d-muted">No collections published yet</span>""">
+<div class="ec_d-collection">
+	<h1>
+		{{!!name}}
+		<$link to=<<currentTiddler>> class="ec_d-underless">🔗</$link>
+	</h1>
+	<span class="ec_d-muted" title="ID of this collection">({{!!id}})</span>
+
+	<h2>Published tiddlers:</h2>
+	<ul>
+		<$list filter="[all[tiddlers]tag[$:/discloser/Link]field:collection<currentTiddler>!is[draft]get[tiddler]]" variable="item">
+			<li>
+				<$link to=<<item>>><$text text=<<item>>/></$link> <span class="ec_d-muted"></span>
+				<$button actions=<<action-remove-link>> class="tc-btn-invisible">🗙</$button>
+			</li>
+		</$list>
+	</ul>
+
+	<h2>Related tiddlers:</h2>
+	<ul>
+		<$set name="existing-items" filter="[all[tiddlers]tag[$:/discloser/Link]field:collection<currentTiddler>get[tiddler]]">
+			<$list filter="[enlist<existing-items>]" variable="existing-item">
+				<$list filter="[all[tiddlers]field:parent<existing-item>] [<existing-item>links[]] -[enlist<existing-items>] +[!is[draft]!is[shadow]!is[system]]" variable="item">
+					<li>
+						<$button actions=<<action-link-tiddler>> class="tc-btn-invisible">➕</$button>
+						<$link to=<<item>>><$text text=<<item>>/></$link>
+					</li>
+				</$list>
+			</$list>
+		</$set>
+	</ul>
+
+	<<comp-search>>
+</div>
+</$list>
+
+----
+
+<$keyboard actions=<<action-create-collection>> key="enter">
+
+!! Share a new collection: <$edit-text tag="input" tiddler="$:/temp/discloser" field="collection-name" placeholder="Collection name"/>
+</$keyboard>
+\end
