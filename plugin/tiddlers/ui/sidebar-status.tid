@@ -1,0 +1,8 @@
+title: $:/plugins/EvidentlyCube/Discloser/sidebar-status
+tags: $:/tags/SideBarSegment
+list-after: $:/core/ui/SideBarSegments/site-subtitle
+
+\whitespace trim
+<div class="tc-site-subtitle">
+''Discloser status:''&nbsp;<$list filter="[list[$:/plugins/EvidentlyCube/Discloser/pending-refresh]count[]]"/>
+</div>
