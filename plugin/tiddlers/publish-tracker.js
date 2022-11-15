@@ -29,15 +29,16 @@ exports.startup = function() {
 	const dirtyCollections = new Set();
 
 	$tw.wiki.addEventListener("change", onChange);
+	$tw.hooks.addHook("ec-discloser-publish",function(parseTreeNodes,widget) {
+		console.log(arguments);
+	});
 
 	loadStoredDirtyCollections();
 
 	function loadStoredDirtyCollections() {
 		const tiddler = $tw.wiki.getTiddler(PENDING_REFRESH_TITLE);
 		if (tiddler && tiddler.fields.list) {
-			console.log(tiddler.fields.list);
-			const list = tiddler.fields.list.split(' ');
-			$tw.utils.each(list, function(title) {
+			$tw.utils.each(tiddler.fields.list, function(title) {
 				dirtyCollections.add(title);
 			});
 		}
