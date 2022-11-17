@@ -8,6 +8,7 @@ type: text/vnd.tiddlywiki
 	border-radius: 1em;
 	background: #F8F8F8;
 	padding: 1em;
+	margin-bottom: 1em;
 }
 .ec_d-collection h1{
 	margin: 0;
@@ -18,4 +19,25 @@ type: text/vnd.tiddlywiki
 }
 .ec_d-underless {
 	text-decoration: none !important;
+}
+.ec_d-tidlist:empty::before {
+	content: "No tiddlers found!";
+}
+
+span.tc-tag-label.ec_d-not-published {
+	background: #EEE;
+	border: 1px solid #888;
+	color: #444;
+}
+
+span.tc-tag-label.ec_d-outdated {
+	background: #EEA;
+	border: 1px solid #886;
+	color: black;
+}
+
+span.tc-tag-label.ec_d-published {
+	background: #AEA;
+	border: 1px solid #686;
+	color: black;
 }
