@@ -18,71 +18,82 @@ Module for doing the actual publishing
 
 	const process = require('process');
 
-	exports.EvidentlyCubeDiscloser_Publisher = {
-		publishCollections: function(collectionTitles) {
-			const renderCommands = [];
-			const affectedDiscloserTiddlers = new Set();
+	exports.EvidentlyCubeDiscloser_PublishCollections = function(collectionTitles) {
+		const renderCommands = [];
+		const affectedDiscloserTiddlers = new Set();
 
-			renderCommands.push('--output');
-			renderCommands.push(`${process.cwd()}/output/`);
+		renderCommands.push('--output');
+		renderCommands.push(`${process.cwd()}/output/`);
 
-			$tw.utils.each(collectionTitles, function(title) {
-				const collection = $tw.wiki.getTiddler(title);
-				if (!collection || !collection.fields.id) {
+		$tw.utils.each(collectionTitles, function(collectionTitle) {
+			const collection = $tw.wiki.getTiddler(collectionTitle);
+			if (!collection || !collection.fields.id) {
+				return;
+			}
+
+			affectedDiscloserTiddlers.add(collectionTitle);
+
+			const template = '$:/core/templates/static.tiddler.html';
+			const collectionId = collection.fields.id;
+			const linkTitles = getValidLinks(collectionTitle);
+
+			$tw.utils.each(linkTitles, function(linkTitle) {
+				const link = $tw.wiki.getTiddler(linkTitle);
+				if (!link || !link.fields.tiddler) {
 					return;
 				}
 
-				affectedDiscloserTiddlers.add(title);
+				const linkedTiddler = $tw.wiki.getTiddler(link.fields.tiddler);
+				if (!linkedTiddler) {
+					return;
+				}
 
-				const template = '$:/core/templates/static.tiddler.html';
-				const collectionId = collection.fields.id;
-				const linkTitles = $tw.wiki.filterTiddlers(`[all[tiddlers]tag[$:/discloser/Link]field:collection[${title}]]`);
+				affectedDiscloserTiddlers.add(linkTitle);
 
-				$tw.utils.each(linkTitles, function(linkTitle) {
-					const link = $tw.wiki.getTiddler(linkTitle);
-					if (!link || !link.fields.tiddler) {
-						return;
-					}
-
-					const linkedTiddler = $tw.wiki.getTiddler(link.fields.tiddler);
-					if (!linkedTiddler) {
-						return;
-					}
-
-					affectedDiscloserTiddlers.add(linkTitle);
-
-					const slugifiedTitle = link.fields.tiddler
-						.toLowerCase()
-						.replace(/^[^a-z0-9]+/, '')
-						.replace(/[^a-z0-9]+$/, '')
-						.replace(/[^a-z0-9]+/g, '-');
-					const finalPath = `${collectionId}/${slugifiedTitle}.html`;
-					renderCommands.push(...[
-						'--render',
-						`[[${link.fields.tiddler}]]`,
-						finalPath,
-						'text/plain',
-						template
-					]);
-				});
+				const slugifiedTitle = slugifyTitle(link.fields.tiddler);
+				const finalPath = `${collectionId}/${slugifiedTitle}.html`;
+				renderCommands.push(...[
+					'--render',
+					`[[${link.fields.tiddler}]]`,
+					finalPath,
+					'text/plain',
+					template
+				]);
 			});
+		});
 
-			const commander = new $tw.Commander(
-				renderCommands,
-				function(err) {
-					console.log(err);
-				},
-				$tw.wiki,
-				{output: process.stdout, error: process.stderr}
-			);
-			commander.execute();
+		const commander = new $tw.Commander(
+			renderCommands,
+			function(err) {
+				console.log(err);
+			},
+			$tw.wiki,
+			{output: process.stdout, error: process.stderr}
+		);
+		commander.execute();
 
-			return Array.from(affectedDiscloserTiddlers);
-		}
-	};
+		return Array.from(affectedDiscloserTiddlers);
+	}
 
-	// setTimeout(() => {
-		// $tw.EvidentlyCubeDiscloser_Publisher.publishCollections(["$:/discloser/Collection-60b98f55737ebe15ebf9656122278f3b","$:/discloser/Collection-c3f92207af85427a6de9873550f425b6"]);
-	// }, 100);
+	function getValidLinks(linkTitles) {
+		$tw.wiki.filterTiddlers(`[all[tiddlers]tag[$:/discloser/Link]field:collection[${title}]]`);
+	}
 
+	function generateSlugifiedTitleMap(linkTitles) {
+		const map = new Map();
+
+		$tw.utils.each(titles, function(title) {
+
+		});
+
+		return map;
+	}
+
+	function slugifyTitle(title) {
+		return title
+			.toLowerCase()
+			.replace(/^[^a-z0-9]+/, '')
+			.replace(/[^a-z0-9]+$/, '')
+			.replace(/[^a-z0-9]+/g, '-');
+	}
 }());

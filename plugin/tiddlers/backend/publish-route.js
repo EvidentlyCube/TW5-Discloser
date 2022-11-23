@@ -20,7 +20,7 @@ POST /plugins/evidently-cube/discloser/publish
 	exports.handler = function(request,response,state) {
 		const data = safeJsonParse(state.data, []);
 		const timestamp = Date.now();
-		const affectedDiscloserTiddlers = $tw.EvidentlyCubeDiscloser_Publisher.publishCollections(data.collections || []);
+		const affectedDiscloserTiddlers = $tw.EvidentlyCubeDiscloser_PublishCollections(data.collections || []);
 		state.sendResponse(200,{"Content-Type": "application/json"},JSON.stringify({
 			timestamp: timestamp,
 			affectedDiscloserTiddlers:  affectedDiscloserTiddlers
